@@ -29,8 +29,8 @@ kt_jvm_library(
 
         # External Vaticle Dependencies
         "@vaticle_factory_tracing//client",
-        "@vaticle_typedb_simulation//:typedb_simulation",
-        "@vaticle_typedb_simulation//common",
+        "@vaticle_typedb_benchmark//framework:typedb-simulation-framework",
+        "@vaticle_typedb_benchmark//framework/common",
 
         # External Maven Dependencies
         "@maven//:com_google_code_findbugs_jsr305",
@@ -41,6 +41,7 @@ kt_jvm_library(
 
 java_binary(
     name = "run",
+    data = ["//simulation/config:simulation_config"],
     runtime_deps = [":runner"],
     main_class = "com.vaticle.typedb.iam.simulation.Runner",
     classpath_resources = ["//simulation/config:logback.xml"],

@@ -30,8 +30,8 @@ kt_jvm_library(
         "@vaticle_typedb_client_java//api",
         "@vaticle_typedb_client_java//:client-java",
         "@vaticle_typedb_common//:common",
-        "@vaticle_typedb_simulation//:typedb_simulation",
-        "@vaticle_typedb_simulation//typedb",
+        "@vaticle_typedb_benchmark//framework:typedb-simulation-framework",
+        "@vaticle_typedb_benchmark//framework/typedb",
         "@vaticle_typeql//java:typeql-lang",
         "@vaticle_typeql//java/pattern",
         "@vaticle_typeql//java/query",
@@ -40,7 +40,14 @@ kt_jvm_library(
         "@maven//:io_github_microutils_kotlin_logging_jvm",
         "@maven//:org_slf4j_slf4j_api",
     ],
-    data = ["//:iam-schema.tql"],
+    data = [
+        "//:iam-schema-core-concepts.tql",
+        "//:iam-schema-core-rules.tql",
+        "//:iam-schema-ext-demos.tql",
+        "//:iam-schema-ext-docs.tql",
+        "//:iam-schema-ext-research.tql",
+        "//:iam-schema-ext-simulation.tql",
+    ],
 )
 
 checkstyle_test(

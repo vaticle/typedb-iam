@@ -21,17 +21,18 @@ import com.vaticle.typedb.iam.simulation.common.Context
 import com.vaticle.typedb.iam.simulation.common.ModelParams
 import com.vaticle.typedb.iam.simulation.neo4j.Neo4jSimulation
 import com.vaticle.typedb.iam.simulation.typedb.TypeDBSimulation
-import com.vaticle.typedb.simulation.common.params.Database
-import com.vaticle.typedb.simulation.common.params.Options
+import com.vaticle.typedb.benchmark.framework.common.params.Database
+import com.vaticle.typedb.benchmark.framework.common.params.Options
+import java.lang.IllegalArgumentException
 
-class Runner : com.vaticle.typedb.simulation.Runner<ModelParams>() {
+class Runner : com.vaticle.typedb.benchmark.framework.Runner<ModelParams>() {
 
-    override fun initSimulation(options: Options, config: Config): com.vaticle.typedb.simulation.Simulation<*, *> {
+    override fun initSimulation(options: Options, config: Config): com.vaticle.typedb.benchmark.framework.Simulation<*, *> {
         val context = Context.create(config = config, isTracing = options.tracing != null, isReporting = false)
         return when (options.database) {
             Database.TYPEDB -> TypeDBSimulation.core(options.address, context)
             Database.TYPEDB_CLUSTER -> TypeDBSimulation.cluster(options.address, context)
-            Database.NEO4J -> Neo4jSimulation.create(options.address, context)
+            Database.NEO4J -> throw IllegalArgumentException("Neo4j simulation is not currently implemented.") //Neo4jSimulation.create(options.address, context)
         }
     }
 

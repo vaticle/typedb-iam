@@ -20,16 +20,19 @@ load("@vaticle_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
 filegroup(
     name = "data",
     srcs = [
-        "adjectives.csv",
-        "cities.csv",
-        "continents.csv",
-        "countries.csv",
-        "currencies.csv",
-        "first-names-female.csv",
-        "first-names-male.csv",
-        "last-names.csv",
-        "nouns.csv",
-        "universities.csv",
+        "adjectives.yml",
+        "applications.yml",
+        "roles.yml",
+        "business-units.yml",
+        "companies.yml",
+        "female-names.yml",
+        "file-extensions.yml",
+        "last-names.yml",
+        "male-names.yml",
+        "nouns.yml",
+        "operation-sets.yml",
+        "operations.yml",
+        "ownership-types.yml"
     ],
     visibility = ["//visibility:public"],
 )
@@ -37,6 +40,6 @@ filegroup(
 checkstyle_test(
     name = "checkstyle",
     include = glob(["*"]),
-    exclude = glob(["*.csv"]),
+    exclude = glob(["*.yml"]),
     license_type = "agpl-header",
 )

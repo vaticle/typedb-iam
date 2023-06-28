@@ -16,11 +16,10 @@
  */
 package com.vaticle.typedb.iam.simulation.common
 
-import com.vaticle.typedb.iam.simulation.common.concept.City
-import com.vaticle.typedb.iam.simulation.common.concept.Gender
-import com.vaticle.typedb.simulation.common.seed.RandomSource
+import com.vaticle.typedb.common.yaml.YAML
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDateTime
 
 object Util {
     fun printDuration(start: Instant, end: Instant): String {
@@ -30,10 +29,14 @@ object Util {
             .lowercase()
     }
 
-    fun RandomSource.address(city: City): String {
-        val houseNumber = nextInt(1000)
-        val streetName = choose(city.country.continent.commonFirstNames(Gender.of(nextBoolean())))
-        val zipCode = nextInt(10000)
-        return "$houseNumber $streetName Street, ${city.name}, $zipCode ${city.country.name}"
+    fun boolean(yaml: YAML?): Boolean = yaml!!.asBoolean().value()
+    fun int(yaml: YAML?): Int = yaml!!.asInt().value()
+    fun double(yaml: YAML?): Double = yaml!!.asDouble().value()
+    fun string(yaml: YAML?): String = yaml!!.asString().value()
+    fun map(yaml: YAML?): Map<String, YAML> = yaml!!.asMap().content()
+    fun list(yaml: YAML?): List<YAML> = yaml!!.asList().content()
+
+    fun iterationDate(iterationNumber: Int): LocalDateTime {
+        return LocalDateTime.of(2000, 1, 1, 0, 0).plusDays(iterationNumber.toLong())
     }
 }

@@ -17,21 +17,23 @@
 package com.vaticle.typedb.iam.simulation.common
 
 import com.vaticle.typedb.common.yaml.YAML
+import com.vaticle.typedb.iam.simulation.common.Util.boolean
+import com.vaticle.typedb.iam.simulation.common.Util.int
+import com.vaticle.typedb.iam.simulation.common.Util.map
 
-class ModelParams private constructor(val populationGrowth: Int, val ageOfFriendship: Int, val ageOfAdulthood: Int, val yearsBeforeParenthood: Int) {
+class ModelParams private constructor(val requestApprovalPercentage: Int, val permissionReviewAge: Int, val permissionRenewalPercentage: Int, val createDemoConcepts: Boolean) {
     companion object {
-        private const val POPULATION_GROWTH = "populationGrowth"
-        private const val AGE_OF_ADULTHOOD = "ageOfAdulthood"
-        private const val AGE_OF_FRIENDSHIP = "ageOfFriendship"
-        private const val YEARS_BEFORE_PARENTHOOD = "yearsBeforeParenthood"
+        private const val REQUEST_APPROVAL_PERCENTAGE = "requestApprovalPercentage"
+        private const val PERMISSION_REVIEW_AGE = "permissionReviewAge"
+        private const val PERMISSION_RENEWAL_PERCENTAGE = "permissionRenewalPercentage"
+        private const val CREATE_DEMO_CONCEPTS = "createDemoConcepts"
 
-        fun of(yaml: YAML.Map) = yaml["model"].asMap().let {
-            ModelParams(
-                populationGrowth = it[POPULATION_GROWTH].asInt().value(),
-                ageOfAdulthood = it[AGE_OF_ADULTHOOD].asInt().value(),
-                ageOfFriendship = it[AGE_OF_FRIENDSHIP].asInt().value(),
-                yearsBeforeParenthood = it[YEARS_BEFORE_PARENTHOOD].asInt().value(),
-            )
+        fun of(yaml: YAML.Map): ModelParams {
+            val requestApprovalPercentage = int(map(yaml["model"])[REQUEST_APPROVAL_PERCENTAGE])
+            val permissionReviewAge = int(map(yaml["model"])[PERMISSION_REVIEW_AGE])
+            val permissionRenewalPercentage = int(map(yaml["model"])[PERMISSION_RENEWAL_PERCENTAGE])
+            val createDemoConcepts = boolean(map(yaml["model"])[CREATE_DEMO_CONCEPTS])
+            return ModelParams(requestApprovalPercentage, permissionReviewAge, permissionRenewalPercentage, createDemoConcepts)
         }
     }
 }

@@ -16,27 +16,69 @@
  */
 package com.vaticle.typedb.iam.simulation.common.concept
 
-import java.time.LocalDateTime
-import java.util.Objects
+import com.vaticle.typedb.iam.simulation.common.SeedData
+import com.vaticle.typedb.benchmark.framework.common.seed.RandomSource
 
-class Person constructor(
-    val email: String,
-    private val firstName: String? = null,
-    private val lastName: String? = null,
-    private val address: String? = null,
-    private val gender: Gender? = null,
-    private val birthDate: LocalDateTime? = null
-) {
-    private val hash = Objects.hash(email, firstName, lastName, address, gender, birthDate)
+data class Person(val name: String, val email: String) {
+    constructor(firstName: String, lastName: String, company: Company): this(
+        name = "$firstName $lastName",
+        email = "${firstName.lowercase()}.${lastName.lowercase()}@${company.domainName}.com",
+    )
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || javaClass != other.javaClass) return false
-        val that = other as Person
-        return email == that.email && firstName == that.firstName && lastName == that.lastName && address == that.address && gender == that.gender && birthDate == that.birthDate
-    }
+    companion object {
+        private const val MAX_NAME_PERCENTILE = 90
+        private const val NAME_PERCENTILE_SCALE = 1000
 
-    override fun hashCode(): Int {
-        return hash
+        fun initialise(company: Company, seedData: SeedData, randomSource: RandomSource): Person {
+            val gender = randomSource.choose(listOf("male", "female"))
+            val firstName = initialiseFirstName(gender, seedData, randomSource)
+            val lastName = initialiseLastName(seedData, randomSource)
+            val name = "$firstName $lastName"
+            val email = "${firstName.lowercase()}.${lastName.lowercase()}@${company.domainName}.com"
+            return Person(name, email)
+        }
+
+        private fun initialiseFirstName(gender:String, seedData: SeedData, randomSource: RandomSource): String {
+            val names = when (gender) {
+                "male" -> seedData.maleNames
+                "female" -> seedData.femaleNames
+                else -> randomSource.choose(listOf(seedData.maleNames, seedData.femaleNames))
+            }
+
+            return randomSource.choose(names)["value"] as String
+        }
+
+        private fun initialiseLastName(seedData: SeedData, randomSource: RandomSource): String {
+            return randomSource.choose(seedData.lastNames)["value"] as String
+        }
+
+        private fun initialiseFirstNameByPercentile(gender:String, seedData: SeedData, randomSource: RandomSource): String? {
+            val percentile = randomSource.nextInt(NAME_PERCENTILE_SCALE * MAX_NAME_PERCENTILE)
+            val names = when (gender) {
+                "male" -> seedData.maleNames
+                "female" -> seedData.femaleNames
+                else -> randomSource.choose(listOf(seedData.maleNames, seedData.femaleNames))
+            }
+
+            names.forEach {
+                if ((NAME_PERCENTILE_SCALE * it["percentile"] as Double).toInt() >= percentile) {
+                    return it["value"] as String
+                }
+            }
+
+            return null
+        }
+
+        private fun initialiseLastNameByPercentile(seedData: SeedData, randomSource: RandomSource): String? {
+            val percentile = randomSource.nextInt(NAME_PERCENTILE_SCALE * MAX_NAME_PERCENTILE)
+
+            seedData.lastNames.forEach {
+                if ((NAME_PERCENTILE_SCALE * it["percentile"] as Double).toInt() >= percentile) {
+                    return it["value"] as String
+                }
+            }
+
+            return null
+        }
     }
 }

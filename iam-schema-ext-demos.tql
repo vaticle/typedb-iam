@@ -1,0 +1,252 @@
+#
+# Copyright (C) 2022 Vaticle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+
+#--------------------------------------------------
+# Additional types:
+
+define
+
+employee sub user,
+    owns full-name,
+    owns email;
+
+contractor sub user,
+    owns full-name,
+    owns email;
+
+business-unit sub user-group,
+    owns name;
+
+user-role sub user-group,
+    owns name;
+
+user-account sub user-group,
+    owns email;
+
+file sub resource,
+    owns path;
+
+purchase-order sub resource,
+    owns reference;
+
+customer-account sub resource,
+    owns email;
+
+record sub resource,
+    owns primary-key;
+
+pull-request sub resource,
+    owns hash;
+
+directory sub resource-collection,
+    owns path;
+
+application sub resource-collection,
+    owns name;
+
+database sub resource-collection,
+    owns name;
+
+table sub resource-collection,
+    owns name;
+
+branch sub resource-collection,
+    owns name;
+
+repository sub resource-collection,
+    owns name;
+
+email sub id,
+    value string;
+
+path sub id,
+    value string;
+
+reference sub id,
+    value string;
+
+primary-key sub id,
+    value string;
+
+hash sub id,
+    value string;
+
+full-name sub attribute,
+    value string;
+
+#--------------------------------------------------
+# Granular permission types addition:
+
+undefine
+
+rule subject-permission-inheritance;
+
+rule object-permission-inheritance;
+
+rule action-permission-inheritance;
+
+define
+
+# permission abstract; [https://github.com/vaticle/typeql/issues/274]
+
+direct-permission sub permission;
+
+inherited-permission sub permission;
+
+rule permission-inheritance:
+when {
+    $s isa subject;
+    $ac (object: $o, action: $a) isa access;
+    $ac2 (object: $o2, action: $a2) isa access;
+    (subject: $s2, access: $ac2) isa direct-permission;
+    $s has id $s-id;
+    $o has id $o-id;
+    $a has id $a-id;
+    $s2 has id $s2-id;
+    $o2 has id $o2-id;
+    $a2 has id $a2-id;
+    {
+        (group: $s2, member: $s) isa group-membership;
+    }  or {
+        $s2 is $s;
+    };
+    {
+        (set: $a2, member: $a) isa set-membership;
+    } or {
+        $a2 is $a;
+    };
+    {
+        (collection: $o2, member: $o) isa collection-membership;
+    } or {
+        $o2 is $o;
+    };
+} then {
+    (subject: $s, access: $ac) isa inherited-permission;
+};
+
+#--------------------------------------------------
+# Dynamic segregation policies addition:
+
+undefine
+
+rule segregation-violation-detection;
+
+rule automatic-permission-invalidity;
+
+define
+
+segregation-policy sub relation,
+    relates action,
+    owns name,
+    plays segregation-violation:policy;
+
+# segregation-policy abstract; [https://github.com/vaticle/typeql/issues/274]
+
+static-segregation-policy sub segregation-policy;
+
+dynamic-segregation-policy sub segregation-policy;
+
+access-history sub relation,
+    relates subject,
+    relates access,
+    owns access-time;
+
+subject plays access-history:subject;
+access plays access-history:access;
+
+access-time sub attribute, value datetime;
+
+rule segregation-violation-detection:
+    when {
+        $po(action: $a1, action: $a2) isa static-segregation-policy;
+        $ac1(object: $o, action: $a1) isa access;
+        $ac2(object: $o, action: $a2) isa access;
+        $p1(subject: $s, access: $ac1) isa permission;
+        $p2(subject: $s, access: $ac2) isa permission;
+    } then {
+        (subject: $s, object: $o, policy: $po) isa segregation-violation;
+    };
+
+rule automatic-permission-invalidity:
+    when {
+        $ac1(object: $o, action: $a1) isa access;
+        $ac2(object: $o, action: $a2) isa access;
+        $p1(subject: $s, access: $ac1) isa permission;
+        {
+            $po(action: $a1, action: $a2) isa static-segregation-policy;
+            $p2(subject: $s, access: $ac2) isa permission;
+        } or {
+            $po(action: $a1, action: $a2) isa dynamic-segregation-policy;
+            $p2(subject: $s, access: $ac2) isa access-history;
+        };
+    } then {
+        $p1 has validity false;
+    };
+
+#--------------------------------------------------
+# Reasoner optimisations
+
+undefine
+
+rule transitive-membership;
+
+define
+
+rule transitive-group-membership:
+    when {
+        (group: $g1, member: $g2) isa group-membership;
+        (group: $g2, member: $s) isa group-membership;
+        $g1 has id $g1-id;
+        $g2 has id $g2-id;
+        $s has id $s-id;
+    } then {
+        (group: $g1, member: $s) isa group-membership;
+    };
+
+
+rule transitive-set-membership:
+    when {
+        (set: $s1, member: $s2) isa set-membership;
+        (set: $s2, member: $a) isa set-membership;
+        $s1 has id $s1-id;
+        $s2 has id $s2-id;
+        $a has id $a-id;
+    } then {
+        (set: $s1, member: $a) isa set-membership;
+    };
+
+
+rule transitive-collection-membership:
+    when {
+        (collection: $c1, member: $c2) isa collection-membership;
+        (collection: $c2, member: $o) isa collection-membership;
+        $c1 has id $c1-id;
+        $c2 has id $c2-id;
+        $o has id $o-id;
+    } then {
+        (collection: $c1, member: $o) isa collection-membership;
+    };
+
+rule dummy-access-to-make-concludable:
+    when {
+        $dobj isa object, has name $d1; $d1 = "dummy"; $d1 != "dummy";
+        $dact isa action, has name $d2; $d2 = "dummy"; $d2 != "dummy";
+    } then {
+        (object: $dobj, action: $dact) isa access;
+    };
+
+#--------------------------------------------------

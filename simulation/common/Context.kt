@@ -18,18 +18,15 @@ package com.vaticle.typedb.iam.simulation.common
 
 import mu.KotlinLogging
 
-class Context private constructor(seedData: SeedData, config: Config, isTracing: Boolean, isReporting: Boolean)
-    : com.vaticle.typedb.simulation.Context<SeedData, ModelParams>(seedData, config, isTracing, isReporting) {
+class Context private constructor(seedData: SeedData, config: Config, isTracing: Boolean, isReporting: Boolean):
+    com.vaticle.typedb.benchmark.framework.Context<SeedData, ModelParams>(seedData, config, isTracing, isReporting) {
 
     companion object {
         private val LOGGER = KotlinLogging.logger {}
 
         fun create(config: Config, isTracing: Boolean, isReporting: Boolean): Context {
-            val seedData = SeedData.initialise()
-            LOGGER.info("Total number of continents in seed: {}", seedData.continents.size)
-            LOGGER.info("Total number of countries in seed: {}", seedData.countries.size)
-            LOGGER.info("Total number of cities in seed: {}", seedData.cities.size)
-            LOGGER.info("Total number of universities in seed: {}", seedData.universities.size)
+            val seedData = SeedData(config)
+            LOGGER.info("Total number of companies in seed: {}", seedData.companies.size)
             return Context(seedData, config, isTracing, isReporting)
         }
     }
